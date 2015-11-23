@@ -1,0 +1,7 @@
+<RCC>
+	<qresource>
+		<file>ressources/OpcDataTrender.ico</file>
+		<file>ressources/OpcDataTrender.png</file>
+		<file>ressources/OpcDataTrender_256.png</file>
+	</qresource>
+</RCC>

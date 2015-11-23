@@ -3,7 +3,8 @@
 from PyQt4 import QtCore
 import OpenOPC
 
-OPC_PATH = "MyController.Application."
+# OPC_PATH = "MyController.Application."
+OPC_PATH = ""
 # OPC_SERVER = "CODESYS.OPC.DA"
 OPC_SERVER = "Matrikon.OPC.Simulation.1"
 
@@ -64,10 +65,12 @@ class OPCReadingThread(QtCore.QThread):
         self.wait()
 
     def run(self):
+        self.exiting = False
         # TODO: catch exception (Unreachable OPC server, etc ...) and emit error signal
         self.opc.connect(OPC_SERVER)
         while not self.exiting:
-            tags = self.opc.list(OPC_PATH + "*")
+            # tags = self.opc.list(OPC_PATH + "*")
+            tags = self.opc.list(OPC_PATH + "Configured Aliases")
             # We use a group to avoid memory leaks : http://sourceforge.net/p/openopc/bugs/9/
             self.dataReady.emit(self.opc.read(tags, group="dummyGroup"))
             self.msleep(100)
