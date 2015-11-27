@@ -59,6 +59,7 @@ class OPCReadingThread(QtCore.QThread):
         QtCore.QThread.__init__(self)
         self.opc = OpenOPC.client()
         self.exiting = False
+        self.items = []
 
     def __del__(self):
         self.exiting = True
@@ -69,9 +70,7 @@ class OPCReadingThread(QtCore.QThread):
         # TODO: catch exception (Unreachable OPC server, etc ...) and emit error signal
         self.opc.connect(OPC_SERVER)
         while not self.exiting:
-            # tags = self.opc.list(OPC_PATH + "*")
-            tags = self.opc.list(OPC_PATH + "Configured Aliases")
             # We use a group to avoid memory leaks : http://sourceforge.net/p/openopc/bugs/9/
-            self.dataReady.emit(self.opc.read(tags, group="dummyGroup"))
+            self.dataReady.emit(self.opc.read(self.items, group="dummyGroup"))
             self.msleep(100)
         self.opc.close()

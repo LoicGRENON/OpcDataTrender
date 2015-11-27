@@ -19,8 +19,8 @@ class OpcDataTrender(QtGui.QMainWindow):
 
         self.aboutDialog = MyAboutDialog(self)
 
-        self.samplesX = []
-        self.samplesY = []
+        self.samples = [{'item': u"Triangle Waves.Uint1", 'x': [], 'y': []},
+                        {'item': u"Saw-toothed Waves.UInt1", 'x': [], 'y': []}]
 
         try:
             self.opc = OPCHandler()
@@ -41,6 +41,8 @@ class OpcDataTrender(QtGui.QMainWindow):
         # OPC reading thread
         self.opcThread = OPCReadingThread()
         self.opcThread.dataReady.connect(self.getData, QtCore.Qt.QueuedConnection)
+
+        self.opcThread.items = [sample['item'] for sample in self.samples]
 
         QtCore.QObject.connect(self.ui.actionAbout,
                                QtCore.SIGNAL("triggered()"),
@@ -85,18 +87,20 @@ class OpcDataTrender(QtGui.QMainWindow):
             event.accept()
 
     def getData(self, data):
-        for _i, (item, value, _quality, _timestamp) in enumerate(data):
-            if item == OPC_PATH + u"itemName1":
-                pass
-            elif item == OPC_PATH + u"itemName2":
-                pass
-            elif item == u".testData":
-                if self.isActive():
-                    try:
-                        self.samplesY.append(int(value))
-                        self.samplesX.append((time.clock() - self.startTimestamp) / 1.0)
-                    except TypeError:
-                        pass
+        if self.isActive():
+            for _i, (item, value, _quality, _timestamp) in enumerate(data):
+                try:
+                    for sample in self.samples:
+                        if sample['item'] == item:
+                            sample['y'].append(int(value))
+                            sample['x'].append((time.clock() - self.startTimestamp) / 1.0)
+                            break
+                    # else:
+                    #     self.samples.append({'item': item,
+                    #                          'x': [(time.clock() - self.startTimestamp) / 1.0],
+                    #                          'y': [int(value)]})
+                except TypeError:
+                    pass
         self.ui.statusbar.showMessage(u"Last received data : %s" % datetime.datetime.now().strftime("%H:%M:%S.%f"))
 
     def onRefreshRateChange(self, value):
@@ -105,8 +109,11 @@ class OpcDataTrender(QtGui.QMainWindow):
             self.timer.setInterval(1000.0 * updateFreq)
 
     def onStart(self):
-        self.samplesX = []
-        self.samplesY = []
+        # Init samples values
+        for sample in self.samples:
+            sample['x'] = []
+            sample['y'] = []
+
         self.startTimestamp = time.clock()
 
         self.opcThread.start(QtCore.QThread.TimeCriticalPriority)
@@ -126,18 +133,16 @@ class OpcDataTrender(QtGui.QMainWindow):
         Executed periodically when the monitor update time is fired
         :return:
         """
-        print "Timer timeout"
         self.updatePlot()
 
     def updatePlot(self):
         self.ui.plot.clear()
 
-        c = pg.PlotDataItem({'x': self.samplesX,
-                             'y': self.samplesY},
-                            pen="r")
-        print self.samplesX
-        print self.samplesY
-        self.ui.plot.addItem(c)
+        for sample in self.samples:
+            c = pg.PlotDataItem({'x': sample['x'],
+                                 'y': sample['y']},
+                                pen="r")
+            self.ui.plot.addItem(c)
         self.ui.plot.repaint()
 
 
