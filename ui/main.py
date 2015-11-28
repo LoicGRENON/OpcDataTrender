@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'main.ui'
 #
-# Created: Tue Nov 24 00:40:19 2015
+# Created: Fri Nov 27 22:48:57 2015
 #      by: PyQt4 UI code generator 4.11.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -94,6 +94,10 @@ class Ui_MainWindow(object):
         self.actionQuit.setObjectName(_fromUtf8("actionQuit"))
         self.actionAbout = QtGui.QAction(MainWindow)
         self.actionAbout.setObjectName(_fromUtf8("actionAbout"))
+        self.actionAddTag = QtGui.QAction(MainWindow)
+        self.actionAddTag.setCheckable(False)
+        self.actionAddTag.setObjectName(_fromUtf8("actionAddTag"))
+        self.menuFile.addAction(self.actionAddTag)
         self.menuFile.addAction(self.actionQuit)
         self.menuHelp.addAction(self.actionAbout)
         self.menubar.addAction(self.menuFile.menuAction())
@@ -111,6 +115,7 @@ class Ui_MainWindow(object):
         self.menuHelp.setTitle(_translate("MainWindow", "Help", None))
         self.actionQuit.setText(_translate("MainWindow", "Quit", None))
         self.actionAbout.setText(_translate("MainWindow", "About", None))
+        self.actionAddTag.setText(_translate("MainWindow", "Add tag", None))
 
 from pyqtgraph  import PlotWidget
 import OpcDataTrender_rc

@@ -4,6 +4,7 @@ from PyQt4 import QtCore, QtGui
 from opc import OPC_PATH, OPCHandler, OPCReadingThread
 from ui.main import Ui_MainWindow
 from MyAboutDialog import MyAboutDialog
+from TagSelectorDialog import TagSelectorDialog
 import pyqtgraph as pg
 import OpenOPC
 import sys
@@ -19,8 +20,9 @@ class OpcDataTrender(QtGui.QMainWindow):
 
         self.aboutDialog = MyAboutDialog(self)
 
-        self.samples = [{'item': u"Triangle Waves.Uint1", 'x': [], 'y': []},
-                        {'item': u"Saw-toothed Waves.UInt1", 'x': [], 'y': []}]
+        # self.samples = [{'tagName': u"Triangle Waves.Uint1", 'x': [], 'y': []},
+        #                 {'tagName': u"Saw-toothed Waves.UInt1", 'x': [], 'y': []}]
+        self.samples = []
 
         try:
             self.opc = OPCHandler()
@@ -42,8 +44,9 @@ class OpcDataTrender(QtGui.QMainWindow):
         self.opcThread = OPCReadingThread()
         self.opcThread.dataReady.connect(self.getData, QtCore.Qt.QueuedConnection)
 
-        self.opcThread.items = [sample['item'] for sample in self.samples]
-
+        QtCore.QObject.connect(self.ui.actionAddTag,
+                               QtCore.SIGNAL("triggered()"),
+                               self.addTag)
         QtCore.QObject.connect(self.ui.actionAbout,
                                QtCore.SIGNAL("triggered()"),
                                self.aboutDialog.open)
@@ -86,12 +89,24 @@ class OpcDataTrender(QtGui.QMainWindow):
                                                                QtGui.QMessageBox.No | QtGui.QMessageBox.Yes):
             event.accept()
 
+    def addTag(self):
+        currentItems = [sample['tagName'] for sample in self.samples]
+        d = TagSelectorDialog(self.opc, currentItems=currentItems)
+        r = d.exec_()
+        if r == QtGui.QDialog.Accepted:
+            model = d.ui.tagsToReadListView.model()
+            if model:
+                self.samples = []
+                for rowIdx in xrange(model.rowCount()):
+                    tagName = u"%s" % model.data(model.index(rowIdx, 0), QtCore.Qt.DisplayRole).toString()
+                    self.samples.append({'tagName': tagName, 'x': [], 'y': []})
+
     def getData(self, data):
         if self.isActive():
             for _i, (item, value, _quality, _timestamp) in enumerate(data):
                 try:
                     for sample in self.samples:
-                        if sample['item'] == item:
+                        if sample['tagName'] == item:
                             sample['y'].append(int(value))
                             sample['x'].append((time.clock() - self.startTimestamp) / 1.0)
                             break
@@ -109,13 +124,17 @@ class OpcDataTrender(QtGui.QMainWindow):
             self.timer.setInterval(1000.0 * updateFreq)
 
     def onStart(self):
-        # Init samples values
+        # Stop previous thread
+        self.onStop()
+
+        self.opcThread.items = []
         for sample in self.samples:
+            self.opcThread.items.append(sample['tagName'])
+            # Init samples values
             sample['x'] = []
             sample['y'] = []
 
         self.startTimestamp = time.clock()
-
         self.opcThread.start(QtCore.QThread.TimeCriticalPriority)
 
         updateFreq = float(self.ui.updateKnob.value()) / 10.0

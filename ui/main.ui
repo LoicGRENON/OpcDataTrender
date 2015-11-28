@@ -120,6 +120,7 @@
     <property name="title">
      <string>File</string>
     </property>
+    <addaction name="actionAddTag"/>
     <addaction name="actionQuit"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
@@ -140,6 +141,14 @@
   <action name="actionAbout">
    <property name="text">
     <string>About</string>
+   </property>
+  </action>
+  <action name="actionAddTag">
+   <property name="checkable">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Add tag</string>
    </property>
   </action>
  </widget>
