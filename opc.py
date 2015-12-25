@@ -5,8 +5,8 @@ import OpenOPC
 
 # OPC_PATH = "MyController.Application."
 OPC_PATH = ""
-# OPC_SERVER = "CODESYS.OPC.DA"
-OPC_SERVER = "Matrikon.OPC.Simulation.1"
+OPC_SERVER = "CoDeSys.OPC.DA"
+#OPC_SERVER = "Matrikon.OPC.Simulation.1"
 
 
 class OPCHandler:

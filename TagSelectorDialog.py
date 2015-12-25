@@ -20,7 +20,6 @@ class TagSelectorDialog(QtGui.QDialog):
                                self.onAvblTagsActivated)
 
         if currentItems:
-            #self.populateTagToReadListView()
             model = QtGui.QStandardItemModel()
             self.ui.tagsToReadListView.setModel(model)
             for tag in currentItems:
@@ -28,10 +27,19 @@ class TagSelectorDialog(QtGui.QDialog):
         self.populateAvblItemsTreeview()
 
     def getItems(self, parent=None):
-        if not parent:
-            return [item for item in self.opc.client.list("*")]
-        else:
-            return [item for item in self.opc.client.list(parent)]
+        itemsList = []
+        i = -1
+        for i, item in enumerate(self.opc.client.list("*" if not parent else parent)):
+            itemsList.append(item)
+        return i + 1, itemsList
+
+    def hasChildItems(self, parent):
+        """
+        Check if item has children
+        :param parent: OPC tag
+        :return: True if item has children else False
+        """
+        return True if len(self.opc.client.list(parent)) > 0 else False
 
     def getTags(self, item, parent):
         return [tag for tag in self.opc.client.list(u"%s.%s.*" % (parent, item))]
@@ -39,17 +47,33 @@ class TagSelectorDialog(QtGui.QDialog):
     def populateAvblItemsTreeview(self):
         model = QtGui.QStandardItemModel()
         self.ui.avblItemsTreeView.setModel(model)
-        for parent in self.getItems():
+        itemsNb, itemsList = self.getItems()
+        for parent in itemsList:
             parentItem = QtGui.QStandardItem(parent)
             self.appendChildItems(parent, parentItem)
             model.appendRow(parentItem)
 
-    def appendChildItems(self, parent, parentItem):
-        for child in self.getItems(parent):
-            childItem = QtGui.QStandardItem(child)
-            childItem.setData(parent, QtCore.Qt.UserRole)
-            parentItem.appendRow(childItem)
-            self.appendChildItems(child, childItem)
+    def appendChildItems(self, parentPath, parentItem, itemsList=None):
+        """
+
+        :param parentPath: String
+        :param parentItem: QStandardItem
+        :param itemsList: List
+        :return:
+        """
+        print parentPath
+        if itemsList is None:
+            itemsNb, itemsList = self.getItems(parentPath)
+        for child in itemsList:
+            childPath = "%s.%s" % (parentPath, child)
+            childItemsNb, childItemsList = self.getItems(childPath)
+            # Check if item has children
+            # If current item doesn't have any child, it's a tag and we skip it
+            if childItemsNb > 0:
+                childItem = QtGui.QStandardItem(child)
+                childItem.setData(parentPath, QtCore.Qt.UserRole)
+                parentItem.appendRow(childItem)
+                self.appendChildItems(childPath, childItem, childItemsList)
 
     def onAvblItemsClicked(self, activatedItemIndex):
         model = QtGui.QStandardItemModel()
@@ -60,15 +84,16 @@ class TagSelectorDialog(QtGui.QDialog):
         itemPath = avblItemsModelIdx.data(QtCore.Qt.UserRole).toString()
         if itemPath != "":
             for tag in self.getTags(item, itemPath):
-                tagItem = QtGui.QStandardItem(tag)
-                tagItem.setData(itemPath, QtCore.Qt.UserRole)
-                model.appendRow(tagItem)
+                path = "%s.%s." % (itemPath, item)
+                tagWoPath = tag[len(path):]
+                if len(tagWoPath) > 0:
+                    tagItem = QtGui.QStandardItem(tagWoPath)
+                    tagItem.setData(tag, QtCore.Qt.UserRole)
+                    model.appendRow(tagItem)
 
     def onAvblTagsActivated(self, activatedTagIndex):
         avblTagsModelIdx = self.ui.avblTagsListView.model().itemFromIndex(activatedTagIndex)
-        parent = avblTagsModelIdx.data(QtCore.Qt.UserRole).toString()
-        tag = avblTagsModelIdx.data(QtCore.Qt.DisplayRole).toString()
-        self.appendTagToList("%s.%s" % (parent, tag))
+        self.appendTagToList(avblTagsModelIdx.data(QtCore.Qt.UserRole).toString())
 
     def appendTagToList(self, tag):
         model = self.ui.tagsToReadListView.model()
