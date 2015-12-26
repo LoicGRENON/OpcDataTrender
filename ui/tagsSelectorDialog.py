@@ -2,8 +2,7 @@
 
 # Form implementation generated from reading ui file 'tagsSelectorDialog.ui'
 #
-# Created: Sat Nov 28 09:36:48 2015
-#      by: PyQt4 UI code generator 4.11.2
+# Created by: PyQt4 UI code generator 4.11.4
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -67,11 +66,12 @@ class Ui_tagsSelectorDialog(object):
         self.buttonBox.setCenterButtons(False)
         self.buttonBox.setObjectName(_fromUtf8("buttonBox"))
         self.gridLayout.addWidget(self.buttonBox, 5, 0, 1, 2)
-        self.tagsToReadListView = QtGui.QListView(tagsSelectorDialog)
-        self.tagsToReadListView.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
-        self.tagsToReadListView.setViewMode(QtGui.QListView.ListMode)
-        self.tagsToReadListView.setObjectName(_fromUtf8("tagsToReadListView"))
-        self.gridLayout.addWidget(self.tagsToReadListView, 1, 1, 4, 1)
+        self.tagsToReadListWidget = QtGui.QListWidget(tagsSelectorDialog)
+        self.tagsToReadListWidget.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.tagsToReadListWidget.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
+        self.tagsToReadListWidget.setViewMode(QtGui.QListView.ListMode)
+        self.tagsToReadListWidget.setObjectName(_fromUtf8("tagsToReadListWidget"))
+        self.gridLayout.addWidget(self.tagsToReadListWidget, 1, 1, 4, 1)
 
         self.retranslateUi(tagsSelectorDialog)
         QtCore.QObject.connect(self.buttonBox, QtCore.SIGNAL(_fromUtf8("accepted()")), tagsSelectorDialog.accept)
@@ -83,14 +83,4 @@ class Ui_tagsSelectorDialog(object):
         self.label.setText(_translate("tagsSelectorDialog", "Tags to read:", None))
         self.label_3.setText(_translate("tagsSelectorDialog", "Available tags:", None))
         self.label_2.setText(_translate("tagsSelectorDialog", "Available items in server:", None))
-
-
-if __name__ == "__main__":
-    import sys
-    app = QtGui.QApplication(sys.argv)
-    tagsSelectorDialog = QtGui.QDialog()
-    ui = Ui_tagsSelectorDialog()
-    ui.setupUi(tagsSelectorDialog)
-    tagsSelectorDialog.show()
-    sys.exit(app.exec_())
 

@@ -20,8 +20,6 @@ class OpcDataTrender(QtGui.QMainWindow):
 
         self.aboutDialog = MyAboutDialog(self)
 
-        # self.samples = [{'tagName': u"Triangle Waves.Uint1", 'x': [], 'y': []},
-        #                 {'tagName': u"Saw-toothed Waves.UInt1", 'x': [], 'y': []}]
         self.samples = []
 
         try:
@@ -94,12 +92,13 @@ class OpcDataTrender(QtGui.QMainWindow):
         d = TagSelectorDialog(self.opc, currentItems=currentItems)
         r = d.exec_()
         if r == QtGui.QDialog.Accepted:
-            model = d.ui.tagsToReadListView.model()
-            if model:
-                self.samples = []
-                for rowIdx in xrange(model.rowCount()):
-                    tagName = u"%s" % model.data(model.index(rowIdx, 0), QtCore.Qt.DisplayRole).toString()
-                    self.samples.append({'tagName': tagName, 'x': [], 'y': []})
+            self.samples = []
+            listWidget = d.ui.tagsToReadListWidget
+            for i in xrange(listWidget.count()):
+                self.samples.append({'tagName': u"%s" % listWidget.item(i).text(),
+                                     'plotColor': listWidget.item(i).backgroundColor(),
+                                     'x': [],
+                                     'y': []})
 
     def getData(self, data):
         if self.isActive():
@@ -160,7 +159,7 @@ class OpcDataTrender(QtGui.QMainWindow):
         for sample in self.samples:
             c = pg.PlotDataItem({'x': sample['x'],
                                  'y': sample['y']},
-                                pen="r")
+                                pen=sample['plotColor'])
             self.ui.plot.addItem(c)
         self.ui.plot.repaint()
 

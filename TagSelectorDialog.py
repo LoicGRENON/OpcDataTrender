@@ -18,12 +18,12 @@ class TagSelectorDialog(QtGui.QDialog):
         QtCore.QObject.connect(self.ui.avblTagsListView,
                                QtCore.SIGNAL("activated(QModelIndex)"),
                                self.onAvblTagsActivated)
+        QtCore.QObject.connect(self.ui.tagsToReadListWidget,
+                               QtCore.SIGNAL("customContextMenuRequested(const QPoint &)"),
+                               self.displayContextMenu)
 
-        if currentItems:
-            model = QtGui.QStandardItemModel()
-            self.ui.tagsToReadListView.setModel(model)
-            for tag in currentItems:
-                model.appendRow(QtGui.QStandardItem(tag))
+        for tag in currentItems:
+            self.ui.tagsToReadListWidget.addItem(tag)
         self.populateAvblItemsTreeview()
 
     def getItems(self, parent=None):
@@ -61,7 +61,6 @@ class TagSelectorDialog(QtGui.QDialog):
         :param itemsList: List
         :return:
         """
-        print parentPath
         if itemsList is None:
             itemsNb, itemsList = self.getItems(parentPath)
         for child in itemsList:
@@ -96,17 +95,23 @@ class TagSelectorDialog(QtGui.QDialog):
         self.appendTagToList(avblTagsModelIdx.data(QtCore.Qt.UserRole).toString())
 
     def appendTagToList(self, tag):
-        model = self.ui.tagsToReadListView.model()
-        if not model:
-            model = QtGui.QStandardItemModel()
-            self.ui.tagsToReadListView.setModel(model)
+        listWidget = self.ui.tagsToReadListWidget
+        if len(listWidget.findItems(tag, QtCore.Qt.MatchExactly)) == 0:
+            item = QtGui.QListWidgetItem(tag)
+            item.setBackgroundColor(QtGui.QColor(255, 255, 127))
+            listWidget.addItem(item)
 
-        # Check if tag is in list before append it
-        for rowIdx in xrange(model.rowCount()):
-            if model.data(model.index(rowIdx, 0), QtCore.Qt.DisplayRole).toString() == tag:
-                return False  # Tag not added
-        model.appendRow(QtGui.QStandardItem(tag))
-        return True  # Tag added
+    def displayContextMenu(self, position):
+        selectedItems = self.ui.tagsToReadListWidget.selectedItems()
+        if len(selectedItems) == 1:
+            tag = selectedItems[0].text()
+            menu = QtGui.QMenu()
+            menu.addAction("&Change plot color", lambda: self.pickPlotColor(selectedItems[0], tag))
+            menu.exec_(self.ui.tagsToReadListWidget.viewport().mapToGlobal(position))
+
+    def pickPlotColor(self, listItem, tag):
+        color = QtGui.QColorDialog.getColor()
+        listItem.setBackground(color)
 
 
 class OPCNode:

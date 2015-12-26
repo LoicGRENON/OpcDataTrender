@@ -99,7 +99,10 @@
     </widget>
    </item>
    <item row="1" column="1" rowspan="4">
-    <widget class="QListView" name="tagsToReadListView">
+    <widget class="QListWidget" name="tagsToReadListWidget">
+     <property name="contextMenuPolicy">
+      <enum>Qt::CustomContextMenu</enum>
+     </property>
      <property name="editTriggers">
       <set>QAbstractItemView::NoEditTriggers</set>
      </property>
